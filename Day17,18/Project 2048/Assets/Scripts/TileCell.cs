@@ -4,13 +4,13 @@ using UnityEngine;
 
 public class TileCell : MonoBehaviour
 {
-   public Vector2Int coordinates { get; set; }
+    public Vector2Int coordinates { get; set; }
     public Tile tile { get; set; }
-   // public bool empty => tile == null;
-   //Kiểm tra tile có rỗng không
+    // public bool empty => tile == null;
+    //Kiểm tra cell có rỗng không
     public bool Empty()
     {
-        if(tile == null)
+        if (tile == null)
         {
             return true;
         }
@@ -22,7 +22,7 @@ public class TileCell : MonoBehaviour
     //Kiểm tra cell có được ghi đè chưa(có tồn tại tile nào trên cell chưa)
     public bool Occupied()
     {
-        if(tile != null)
+        if (tile != null)
         {
             return true;
         }

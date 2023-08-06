@@ -4,11 +4,12 @@ using UnityEngine;
 
 public class TileRow : MonoBehaviour
 {
+    
     public TileCell[] cells { get; private set; }
 
     private void Awake()
     { 
-        //tìm các thành phần TileCell trả về dạng list
+        //tìm các cells có trong row trả về dạng list
         cells = GetComponentsInChildren<TileCell>();
     }
 }

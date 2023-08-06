@@ -9,13 +9,13 @@ public class Tile : MonoBehaviour
     public TileState state { get; private set; }
     public TileCell cell { get; private set; }
     public int value { get; private set; }
-    private Image bacdground;
-    private TextMeshProUGUI text;
+    private Image _background;
+    private TextMeshProUGUI _text;
     public bool locked { get; set; }
     private void Awake()
     {
-        bacdground = GetComponent<Image>();
-        text = GetComponentInChildren<TextMeshProUGUI>();
+        _background = GetComponent<Image>();
+        _text = GetComponentInChildren<TextMeshProUGUI>();
     }
     //Thiết lập thuộc tính cho Tile
     public void SetState(TileState state,int value)
@@ -23,11 +23,11 @@ public class Tile : MonoBehaviour
         this.state = state;
         this.value = value;
 
-        bacdground.color = state.backgroundColor;
-        text.color = state.textColor;
-        text.text = value.ToString();
+        _background.color = state.backgroundColor;
+        _text.color = state.textColor;
+        _text.text = value.ToString();
     }
-
+    //tìm cell trống để spawn tile 
     public void Spawn(TileCell cell)
     {
         if (this.cell != null)
@@ -39,6 +39,7 @@ public class Tile : MonoBehaviour
 
         transform.position = cell.transform.position;
     }
+    //di chuyển tile khi cell hợp lệ
     public void MoveTo(TileCell cell)
     {
         if (this.cell != null)
@@ -50,6 +51,8 @@ public class Tile : MonoBehaviour
 
         StartCoroutine(Animate(cell.transform.position,false));
     }
+    //Thiết lập hoạt ảnh thuận mắt hơn
+   
     private IEnumerator Animate(Vector3 to,bool merging)
     {
         float elapsed = 0f;
@@ -68,6 +71,7 @@ public class Tile : MonoBehaviour
         }
 
     }
+    //merge tile
     public void Merge(TileCell cell)
     {
         if (this.cell != null)

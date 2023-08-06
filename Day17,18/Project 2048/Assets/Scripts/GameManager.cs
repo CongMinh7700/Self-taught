@@ -14,6 +14,7 @@ public class GameManager : MonoBehaviour
     {
         NewGame();
     }
+    
     public void NewGame()
     {
         SetScore(0);

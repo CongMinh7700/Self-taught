@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
@@ -7,42 +7,50 @@ public class TileBoard : MonoBehaviour
 {
     public Tile tilePrefabs;
     public TileState[] tileStates;
-    private TileGrid grid;
+    private TileGrid _grid;
     public GameManager gameManager;
-    private List<Tile> tiles;
-    private bool waiting;
+    private List<Tile> _tiles;
+    private bool _waiting;
     private void Awake()
     {
-        grid = GetComponentInChildren<TileGrid>();
-        tiles = new List<Tile>(16);
+        _grid = GetComponentInChildren<TileGrid>();
+        _tiles = new List<Tile>(16);
 
     }
+    //xóa tất cả các tile
     public void ClearBoard()
     {
-        foreach(var cell in grid.cells)
+        foreach(var cell in _grid.cells)
         {
             cell.tile = null;
         }
-        foreach(var tile in tiles)
+        foreach(var tile in _tiles)
         {
             Destroy(tile.gameObject);
         }
-        tiles.Clear();
+        _tiles.Clear();
     }
-
+    //Tạo mới 1 tile theo vị trí random
     public  void CreateTile()
     {
-        Tile tile = Instantiate(tilePrefabs, grid.transform);
+        Tile tile = Instantiate(tilePrefabs, _grid.transform);
         tile.SetState(tileStates[0], 2);
-        tile.Spawn(grid.GetRandomEmptyCell());
-        tiles.Add(tile);
+        tile.Spawn(_grid.GetRandomEmptyCell());
+        _tiles.Add(tile);
 
     }
     private void Update()
     {
-        if (!waiting)
+        if (!_waiting)
         {
-            if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
+            MoveControl();
+        }
+       
+    }
+    //Thực hiện thao tác điều khiển của game
+    private void MoveControl()
+    {
+        if (Input.GetKeyDown(KeyCode.W) || Input.GetKeyDown(KeyCode.UpArrow))
         {
             MoveTiles(Vector2Int.up, 0, 1, 1, 1);
         }
@@ -52,25 +60,25 @@ public class TileBoard : MonoBehaviour
         }
         else if (Input.GetKeyDown(KeyCode.S) || Input.GetKeyDown(KeyCode.DownArrow))
         {
-            MoveTiles(Vector2Int.down, 0, 1, grid.height - 2, -1);
+            MoveTiles(Vector2Int.down, 0, 1, _grid.height - 2, -1);
         }
         else if (Input.GetKeyDown(KeyCode.D) || Input.GetKeyDown(KeyCode.RightArrow))
         {
-            MoveTiles(Vector2Int.right, grid.width - 2, -1, 0, 1);
+            MoveTiles(Vector2Int.right, _grid.width - 2, -1, 0, 1);
         }
-        }
-       
     }
+    //Move nhiều tiles 
     private void MoveTiles(Vector2Int direction, int startX, int incrementX, int startY, int incrementY)
     {
         bool changed = false;
-        for (int x = startX; x >= 0 && x < grid.width; x += incrementX)
+        for (int x = startX; x >= 0 && x < _grid.width; x += incrementX)
         {
-            for (int y = startY; y >= 0 && y < grid.height; y += incrementY)
+            for (int y = startY; y >= 0 && y < _grid.height; y += incrementY)
             {
-                TileCell cell = grid.GetCell(x, y);
+                TileCell cell = _grid.GetCell(x, y);
                 if (cell.Occupied())
                 {
+                    //phép or sẽ trả về true false và được gán cho changed
                    changed |= MoveTile(cell.tile, direction);
                 }
             }
@@ -80,12 +88,16 @@ public class TileBoard : MonoBehaviour
             StartCoroutine(WaitForChange());
         }
     }
+    //Move từng tile
     private bool MoveTile(Tile tile, Vector2Int direction)
     {
         TileCell newCell = null;
-        TileCell adjacent = grid.GetAdjacentCell(tile.cell, direction);
+        //lấy ô liền kề
+        //nếu có thì mới thực hiện 
+        TileCell adjacent = _grid.GetAdjacentCell(tile.cell, direction);
         while (adjacent != null)
         {
+            //nếu ô liền kề có tile tiến hành merge
             if (adjacent.Occupied())
             {
                 if (CanMerge(tile, adjacent.tile))
@@ -95,7 +107,7 @@ public class TileBoard : MonoBehaviour
                 break;
             }
             newCell = adjacent;
-            adjacent = grid.GetAdjacentCell(adjacent, direction);
+            adjacent = _grid.GetAdjacentCell(adjacent, direction);
         }
         if (newCell != null)
         {
@@ -106,17 +118,18 @@ public class TileBoard : MonoBehaviour
         }
         return false;
     }
+
     private IEnumerator WaitForChange()
     {
-        waiting = true;
+        _waiting = true;
         yield return new WaitForSeconds(0.1f);
-        waiting = false;
-        foreach(var tile in tiles)
+        _waiting = false;
+        foreach(var tile in _tiles)
         {
             tile.locked = false;
         }
-        //create New tile
-        if (tiles.Count != grid.size)
+        //tạo tile mới khi mà số lượng tile < số ô trong grid(16 ô)
+        if (_tiles.Count != _grid.size)
         {
             CreateTile();
         }
@@ -127,6 +140,7 @@ public class TileBoard : MonoBehaviour
             gameManager.GameOver();
         }
     }
+    // kiểm tra điều kiện để merge
     private bool CanMerge(Tile a,Tile b)
     {
         return a.value == b.value && !b.locked;
@@ -134,13 +148,15 @@ public class TileBoard : MonoBehaviour
     }
     public void Merge(Tile a,Tile b)
     {
-        tiles.Remove(a);
+        _tiles.Remove(a);
         a.Merge(b.cell);
-        int index = Math.Clamp(  IndexOf(b.state)+1,0,tileStates.Length-1);
+        //dùng để lấy trạng thái cảu tile(màu sắc ,giá trị)
+        int index = Math.Clamp(IndexOf(b.state)+1,0,tileStates.Length-1);
         int value = b.value * 2;
         b.SetState(tileStates[index], value );
         gameManager.IncreaseScore(value);
     }
+    //lấy vị trí trạng thái của tile có 11 giá trị từ 0->11
     private int IndexOf(TileState state) 
     {
         for(int i = 0; i < tileStates.Length; i++)
@@ -152,18 +168,20 @@ public class TileBoard : MonoBehaviour
         }
         return -1;
     }
+    //Check game over
     private bool CheckForGameOver()
     {
-        if(tiles.Count != grid.size)
+        if(_tiles.Count != _grid.size)
         {
             return false;
         }
-        foreach(var tile in tiles)
+        foreach(var tile in _tiles)
         {
-            TileCell up = grid.GetAdjacentCell(tile.cell, Vector2Int.up);
-            TileCell down = grid.GetAdjacentCell(tile.cell, Vector2Int.down);
-            TileCell right = grid.GetAdjacentCell(tile.cell, Vector2Int.right);
-            TileCell left = grid.GetAdjacentCell(tile.cell, Vector2Int.left);
+            TileCell up = _grid.GetAdjacentCell(tile.cell, Vector2Int.up);
+            TileCell down = _grid.GetAdjacentCell(tile.cell, Vector2Int.down);
+            TileCell right = _grid.GetAdjacentCell(tile.cell, Vector2Int.right);
+            TileCell left = _grid.GetAdjacentCell(tile.cell, Vector2Int.left);
+            //kiểm tra còn move dc hay không
             if(up != null && CanMerge(tile,up.tile))
             {
                 return false;
