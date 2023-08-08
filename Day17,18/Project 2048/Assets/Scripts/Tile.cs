@@ -6,6 +6,7 @@ using TMPro;
 
 public class Tile : MonoBehaviour
 {
+    //ENCAPSULATION
     public TileState state { get; private set; }
     public TileCell cell { get; private set; }
     public int value { get; private set; }

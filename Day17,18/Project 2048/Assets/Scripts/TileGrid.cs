@@ -55,6 +55,7 @@ public class TileGrid : MonoBehaviour
         return cells[index];
     }
     //Lấy vị trí theo x,y
+    //PHOLYMORPHISM
     public TileCell GetCell(int x, int y)
     {
         if (x >= 0 && x < width && y >= 0 && y < height)

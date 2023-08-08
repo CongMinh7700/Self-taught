@@ -5,10 +5,10 @@ using UnityEngine;
 
 public class TileBoard : MonoBehaviour
 {
-    public Tile tilePrefabs;
-    public TileState[] tileStates;
+    [SerializeField] private Tile tilePrefabs;
+    [SerializeField] private TileState[] tileStates;
     private TileGrid _grid;
-    public GameManager gameManager;
+    [SerializeField] private GameManager gameManager;
     private List<Tile> _tiles;
     private bool _waiting;
     private void Awake()
@@ -20,18 +20,18 @@ public class TileBoard : MonoBehaviour
     //xóa tất cả các tile
     public void ClearBoard()
     {
-        foreach(var cell in _grid.cells)
+        foreach (var cell in _grid.cells)
         {
             cell.tile = null;
         }
-        foreach(var tile in _tiles)
+        foreach (var tile in _tiles)
         {
             Destroy(tile.gameObject);
         }
         _tiles.Clear();
     }
     //Tạo mới 1 tile theo vị trí random
-    public  void CreateTile()
+    public void CreateTile()
     {
         Tile tile = Instantiate(tilePrefabs, _grid.transform);
         tile.SetState(tileStates[0], 2);
@@ -45,7 +45,7 @@ public class TileBoard : MonoBehaviour
         {
             MoveControl();
         }
-       
+
     }
     //Thực hiện thao tác điều khiển của game
     private void MoveControl()
@@ -79,11 +79,11 @@ public class TileBoard : MonoBehaviour
                 if (cell.Occupied())
                 {
                     //phép or sẽ trả về true false và được gán cho changed
-                   changed |= MoveTile(cell.tile, direction);
+                    changed |= MoveTile(cell.tile, direction);
                 }
             }
         }
-        if(changed)
+        if (changed)
         {
             StartCoroutine(WaitForChange());
         }
@@ -124,7 +124,7 @@ public class TileBoard : MonoBehaviour
         _waiting = true;
         yield return new WaitForSeconds(0.1f);
         _waiting = false;
-        foreach(var tile in _tiles)
+        foreach (var tile in _tiles)
         {
             tile.locked = false;
         }
@@ -141,27 +141,27 @@ public class TileBoard : MonoBehaviour
         }
     }
     // kiểm tra điều kiện để merge
-    private bool CanMerge(Tile a,Tile b)
+    private bool CanMerge(Tile a, Tile b)
     {
         return a.value == b.value && !b.locked;
 
     }
-    public void Merge(Tile a,Tile b)
+    public void Merge(Tile a, Tile b)
     {
         _tiles.Remove(a);
         a.Merge(b.cell);
         //dùng để lấy trạng thái cảu tile(màu sắc ,giá trị)
-        int index = Math.Clamp(IndexOf(b.state)+1,0,tileStates.Length-1);
+        int index = Math.Clamp(IndexOf(b.state) + 1, 0, tileStates.Length - 1);
         int value = b.value * 2;
-        b.SetState(tileStates[index], value );
+        b.SetState(tileStates[index], value);
         gameManager.IncreaseScore(value);
     }
     //lấy vị trí trạng thái của tile có 11 giá trị từ 0->11
-    private int IndexOf(TileState state) 
+    private int IndexOf(TileState state)
     {
-        for(int i = 0; i < tileStates.Length; i++)
+        for (int i = 0; i < tileStates.Length; i++)
         {
-            if(state == tileStates[i])
+            if (state == tileStates[i])
             {
                 return i;
             }
@@ -171,34 +171,34 @@ public class TileBoard : MonoBehaviour
     //Check game over
     private bool CheckForGameOver()
     {
-        if(_tiles.Count != _grid.size)
+        if (_tiles.Count != _grid.size)
         {
             return false;
         }
-        foreach(var tile in _tiles)
+        foreach (var tile in _tiles)
         {
             TileCell up = _grid.GetAdjacentCell(tile.cell, Vector2Int.up);
             TileCell down = _grid.GetAdjacentCell(tile.cell, Vector2Int.down);
             TileCell right = _grid.GetAdjacentCell(tile.cell, Vector2Int.right);
             TileCell left = _grid.GetAdjacentCell(tile.cell, Vector2Int.left);
             //kiểm tra còn move dc hay không
-            if(up != null && CanMerge(tile,up.tile))
-            {
-                return false;
-            } 
-            if(left != null && CanMerge(tile,left.tile))
-            {
-                return false;
-            }  
-            if(right != null && CanMerge(tile,right.tile))
-            {
-                return false;
-            } 
-            if(down != null && CanMerge(tile,down.tile))
+            if (up != null && CanMerge(tile, up.tile))
             {
                 return false;
             }
-           
+            if (left != null && CanMerge(tile, left.tile))
+            {
+                return false;
+            }
+            if (right != null && CanMerge(tile, right.tile))
+            {
+                return false;
+            }
+            if (down != null && CanMerge(tile, down.tile))
+            {
+                return false;
+            }
+
         }
         return true;
     }
